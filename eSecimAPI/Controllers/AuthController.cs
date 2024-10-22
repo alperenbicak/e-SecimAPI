@@ -22,8 +22,26 @@ namespace eSecimAPI.Controllers
 
 		// Kullanıcı kayıt API
 		[HttpPost("register")]
-		public async Task<IActionResult> Register(UserDto request)
+		public async Task<IActionResult> Register(RegisterDto request)
 		{
+			// Vatandaş tablosundan TC Kimlik ve isim eşleşmesini kontrol ediyoruz
+			var citizen = await _context.Citizens.FirstOrDefaultAsync(c =>
+				c.TCKimlikNo == request.TCKimlikNo &&
+				c.FirstName == request.FirstName &&
+				c.LastName == request.LastName);
+
+			if (citizen == null)
+			{
+				return BadRequest("Vatandaş bilgileri doğrulanamadı. Lütfen geçerli bir TC Kimlik numarası ve isim giriniz.");
+			}
+
+			// Kullanıcı adı zaten mevcut mu kontrol ediyoruz
+			if (await _context.Users.AnyAsync(x => x.UserName == request.UserName))
+			{
+				return BadRequest("Kullanıcı adı zaten mevcut.");
+			}
+
+			// Şifre hash'leme işlemi
 			_authService.CreatePasswordHash(request.Password, out byte[] passwordHash, out byte[] passwordSalt);
 
 			var user = new User
@@ -34,11 +52,13 @@ namespace eSecimAPI.Controllers
 				Role = "Voter"  // Varsayılan olarak "Voter" rolünde kayıt yapıyoruz
 			};
 
+			// Kullanıcıyı veritabanına kaydediyoruz
 			_context.Users.Add(user);
 			await _context.SaveChangesAsync();
 
 			return Ok("Kayıt başarılı!");
 		}
+
 
 		// Kullanıcı giriş API
 		[HttpPost("login")]
