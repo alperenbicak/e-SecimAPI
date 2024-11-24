@@ -1,5 +1,4 @@
-﻿
-namespace eSecimAPI.Controllers
+﻿namespace eSecimAPI.Controllers
 {
 	using eSecimAPI.Data;
 	using eSecimAPI.Models;
@@ -12,9 +11,9 @@ namespace eSecimAPI.Controllers
 	public class AuthController : ControllerBase
 	{
 		private readonly ESecimDbContext _context;
-		private readonly AuthenticationService _authService;
+		private readonly AuthService _authService;
 
-		public AuthController(ESecimDbContext context, AuthenticationService authService)
+		public AuthController(ESecimDbContext context, AuthService authService)
 		{
 			_context = context;
 			_authService = authService;
@@ -22,9 +21,12 @@ namespace eSecimAPI.Controllers
 
 		// Kullanıcı kayıt API
 		[HttpPost("register")]
-		public async Task<IActionResult> Register(RegisterDto request)
+		public async Task<IActionResult> Register([FromBody] Register request)
 		{
-			// Vatandaş tablosundan TC Kimlik ve isim eşleşmesini kontrol ediyoruz
+			if (!ModelState.IsValid)
+				return BadRequest(ModelState);
+
+			// Vatandaş doğrulama
 			var citizen = await _context.Citizens.FirstOrDefaultAsync(c =>
 				c.TCKimlikNo == request.TCKimlikNo &&
 				c.FirstName == request.FirstName &&
@@ -32,13 +34,13 @@ namespace eSecimAPI.Controllers
 
 			if (citizen == null)
 			{
-				return BadRequest("Vatandaş bilgileri doğrulanamadı. Lütfen geçerli bir TC Kimlik numarası ve isim giriniz.");
+				return BadRequest(new { Error = "Vatandaş bilgileri doğrulanamadı. Lütfen geçerli bir TC Kimlik numarası ve isim giriniz." });
 			}
 
-			// Kullanıcı adı zaten mevcut mu kontrol ediyoruz
+			// Kullanıcı adı kontrolü
 			if (await _context.Users.AnyAsync(x => x.UserName == request.UserName))
 			{
-				return BadRequest("Kullanıcı adı zaten mevcut.");
+				return BadRequest(new { Error = "Kullanıcı adı zaten mevcut." });
 			}
 
 			// Şifre hash'leme işlemi
@@ -49,32 +51,36 @@ namespace eSecimAPI.Controllers
 				UserName = request.UserName,
 				PasswordHash = passwordHash,
 				PasswordSalt = passwordSalt,
-				Role = "Voter"  // Varsayılan olarak "Voter" rolünde kayıt yapıyoruz
+				Role = "Voter",  // Varsayılan olarak voter
+				VotedElectionIds = new List<int>()
 			};
 
-			// Kullanıcıyı veritabanına kaydediyoruz
 			_context.Users.Add(user);
 			await _context.SaveChangesAsync();
 
 			return Ok("Kayıt başarılı!");
 		}
 
-
-		// Kullanıcı giriş API
+		// Giriş API (Admin ve Voter için aynı endpoint)
 		[HttpPost("login")]
-		public async Task<IActionResult> Login(UserDto request)
+		public async Task<IActionResult> Login([FromBody] UserDto request)
 		{
+			// Kullanıcıyı kontrol ediyoruz
 			var user = await _context.Users.FirstOrDefaultAsync(x => x.UserName == request.UserName);
 			if (user == null)
-				return BadRequest("Kullanıcı bulunamadı.");
+				return Unauthorized(new { Error = "Kullanıcı bulunamadı." });
 
+			// Şifre doğrulama
 			if (!_authService.VerifyPasswordHash(request.Password, user.PasswordHash, user.PasswordSalt))
-				return BadRequest("Hatalı şifre.");
+				return Unauthorized(new { Error = "Hatalı şifre." });
 
+			// JWT token oluşturma
 			var token = _authService.CreateToken(user);
 
-			return Ok(new { Token = token });
+			// Giriş türüne göre mesaj
+			var message = user.Role == "Admin" ? "Admin giriş başarılı!" : "Kullanıcı girişi başarılı!";
+
+			return Ok(new { Token = token, Role = user.Role, Message = message });
 		}
 	}
-
 }

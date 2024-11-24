@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using eSecimAPI.Data;
 
@@ -11,9 +12,11 @@ using eSecimAPI.Data;
 namespace eSecimAPI.Migrations
 {
     [DbContext(typeof(ESecimDbContext))]
-    partial class ESecimDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241124152210_second")]
+    partial class second
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -36,6 +39,10 @@ namespace eSecimAPI.Migrations
 
                     b.Property<int>("ElectionId")
                         .HasColumnType("int");
+
+                    b.Property<string>("Party")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("VoteCount")
                         .HasColumnType("int");

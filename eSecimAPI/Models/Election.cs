@@ -6,7 +6,8 @@
 		public string Title { get; set; }
 		public DateTime StartDate { get; set; }
 		public DateTime EndDate { get; set; }
-		public List<Vote> Votes { get; set; }
+		public ICollection<Candidate> Candidates { get; set; } = new HashSet<Candidate>();
+
 	}
 
 }

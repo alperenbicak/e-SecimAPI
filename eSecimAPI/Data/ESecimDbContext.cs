@@ -12,7 +12,6 @@
 
 		public DbSet<User> Users { get; set; }
 		public DbSet<Election> Elections { get; set; }
-		public DbSet<Vote> Votes { get; set; }
 		public DbSet<Citizen> Citizens { get; set; }
 	}
 }

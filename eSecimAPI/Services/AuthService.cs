@@ -7,11 +7,11 @@
 	using System.Text;
 	using eSecimAPI.Models;
 
-	public class AuthenticationService
+	public class AuthService
 	{
 		private readonly IConfiguration _configuration;
 
-		public AuthenticationService(IConfiguration configuration)
+		public AuthService(IConfiguration configuration)
 		{
 			_configuration = configuration;
 		}

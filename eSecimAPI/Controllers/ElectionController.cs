@@ -1,12 +1,11 @@
-﻿
-
-using eSecimAPI.Models;
+﻿using eSecimAPI.Models;
 using eSecimAPI.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace eSecimAPI.Controllers
 {
+	[Authorize(Roles = "Admin")] // Sadece admin erişimi
 	[Route("api/[controller]")]
 	[ApiController]
 	public class ElectionController : ControllerBase
@@ -18,23 +17,42 @@ namespace eSecimAPI.Controllers
 			_electionService = electionService;
 		}
 
-		// Seçimleri listeleme
-		[HttpGet]
-		public async Task<IActionResult> GetElections()
+		// Seçim oluşturma
+		[HttpPost("create")]
+		public async Task<IActionResult> CreateElection([FromBody] ElectionCreateDto request)
 		{
-			var elections = await _electionService.GetElections();
+			try
+			{
+				var election = await _electionService.CreateElectionAsync(request);
+				return Ok(new { Message = "Seçim başarıyla oluşturuldu.", ElectionId = election.Id });
+			}
+			catch (ArgumentException ex)
+			{
+				return BadRequest(new { Error = ex.Message });
+			}
+		}
+
+		// Tüm seçimleri listeleme
+		[HttpGet("all")]
+		public async Task<IActionResult> GetAllElections()
+		{
+			var elections = await _electionService.GetAllElectionsAsync();
 			return Ok(elections);
 		}
 
-		// Yeni bir seçim ekleme
-		[HttpPost]
-		[Authorize(Roles = "Admin")]  // Sadece admin seçim ekleyebilir
-		public async Task<IActionResult> CreateElection(ElectionDto request)
+		// Tek bir seçimi alma
+		[HttpGet("{id}")]
+		public async Task<IActionResult> GetElectionById(int id)
 		{
-			var election = await _electionService.CreateElection(request);
-			return Ok("Seçim başarıyla oluşturuldu.");
+			try
+			{
+				var election = await _electionService.GetElectionByIdAsync(id);
+				return Ok(election);
+			}
+			catch (KeyNotFoundException ex)
+			{
+				return NotFound(new { Error = ex.Message });
+			}
 		}
 	}
-
-
 }

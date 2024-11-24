@@ -1,12 +1,12 @@
-﻿namespace eSecimAPI.Services
-{
-	using eSecimAPI.Models;
-	using System.Collections.Generic;
-	using System.Threading.Tasks;
+﻿using eSecimAPI.Models;
 
+namespace eSecimAPI.Services
+{
 	public interface IElectionService
 	{
-		Task<List<Election>> GetElections();
-		Task<Election> CreateElection(ElectionDto request);
+		Task<Election> CreateElectionAsync(ElectionCreateDto request);
+		Task<List<ElectionDto>> GetAllElectionsAsync();
+		Task<ElectionDto> GetElectionByIdAsync(int id);
 	}
 }
+
