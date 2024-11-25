@@ -41,10 +41,10 @@
 		{
 			var claims = new[]
 			{
-			new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-			new Claim(ClaimTypes.Name, user.UserName),
-			new Claim(ClaimTypes.Role, user.Role)
-		};
+		new Claim("id", user.Id.ToString()), // Kullanıcı ID'si için claim
+        new Claim(ClaimTypes.Name, user.UserName),
+		new Claim(ClaimTypes.Role, user.Role)
+	};
 
 			var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
 			var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
@@ -63,6 +63,7 @@
 
 			return tokenHandler.WriteToken(token);
 		}
+
 	}
 
 }
