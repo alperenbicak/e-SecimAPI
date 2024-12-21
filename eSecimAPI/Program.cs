@@ -71,7 +71,15 @@ builder.Services.AddAuthentication(options =>
 });
 
 builder.Services.AddAuthorization();
-
+builder.Services.AddCors(options =>
+{
+	options.AddPolicy("AllowAngularApp", policy =>
+	{
+		policy.WithOrigins("http://localhost:4200") // Angular uygulamanýzýn URL'si
+			  .AllowAnyHeader() // Tüm header'lara izin ver
+			  .AllowAnyMethod(); // GET, POST, PUT, DELETE gibi tüm HTTP metotlarýna izin ver
+	});
+});
 
 var app = builder.Build();
 
@@ -85,7 +93,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseAuthentication();
-
+app.UseCors("AllowAngularApp");
 app.UseAuthorization();
 
 

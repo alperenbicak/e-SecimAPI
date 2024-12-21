@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace eSecimAPI.Controllers
 {
-	[Authorize(Roles = "Admin")] // Sadece admin erişimi
+	 // Sadece admin erişimi
 	[Route("api/[controller]")]
 	[ApiController]
 	public class ElectionController : ControllerBase
@@ -18,6 +18,7 @@ namespace eSecimAPI.Controllers
 		}
 
 		// Seçim oluşturma
+		[Authorize(Roles = "Admin")]
 		[HttpPost("create")]
 		public async Task<IActionResult> CreateElection([FromBody] ElectionCreateDto request)
 		{

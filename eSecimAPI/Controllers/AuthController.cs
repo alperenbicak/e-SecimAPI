@@ -57,8 +57,9 @@
 
 			_context.Users.Add(user);
 			await _context.SaveChangesAsync();
+			var message = "Kayıt Başarılı";
 
-			return Ok("Kayıt başarılı!");
+			return Ok(new { Message = message });
 		}
 
 		// Giriş API (Admin ve Voter için aynı endpoint)
