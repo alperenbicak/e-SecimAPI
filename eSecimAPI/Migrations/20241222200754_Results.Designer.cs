@@ -12,8 +12,8 @@ using eSecimAPI.Data;
 namespace eSecimAPI.Migrations
 {
     [DbContext(typeof(ESecimDbContext))]
-    [Migration("20241120105659_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20241222200754_Results")]
+    partial class Results
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,6 +24,31 @@ namespace eSecimAPI.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("eSecimAPI.Models.Candidate", b =>
+                {
+                    b.Property<int>("CandidateId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CandidateId"));
+
+                    b.Property<string>("CandidateName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ElectionId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("VoteCount")
+                        .HasColumnType("int");
+
+                    b.HasKey("CandidateId");
+
+                    b.HasIndex("ElectionId");
+
+                    b.ToTable("Candidate");
+                });
 
             modelBuilder.Entity("eSecimAPI.Models.Citizen", b =>
                 {
@@ -100,6 +125,10 @@ namespace eSecimAPI.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("VotedElectionIds")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("Id");
 
                     b.ToTable("Users");
@@ -107,53 +136,40 @@ namespace eSecimAPI.Migrations
 
             modelBuilder.Entity("eSecimAPI.Models.Vote", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("VoteId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("VoteId"));
 
-                    b.Property<string>("Candidate")
+                    b.Property<string>("EncryptedVote")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("ElectionId")
-                        .HasColumnType("int");
+                    b.Property<DateTime>("Timestamp")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ElectionId");
-
-                    b.HasIndex("UserId");
+                    b.HasKey("VoteId");
 
                     b.ToTable("Votes");
                 });
 
-            modelBuilder.Entity("eSecimAPI.Models.Vote", b =>
+            modelBuilder.Entity("eSecimAPI.Models.Candidate", b =>
                 {
                     b.HasOne("eSecimAPI.Models.Election", "Election")
-                        .WithMany("Votes")
+                        .WithMany("Candidates")
                         .HasForeignKey("ElectionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("eSecimAPI.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("Election");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("eSecimAPI.Models.Election", b =>
                 {
-                    b.Navigation("Votes");
+                    b.Navigation("Candidates");
                 });
 #pragma warning restore 612, 618
         }

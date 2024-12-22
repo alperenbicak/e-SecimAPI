@@ -42,9 +42,22 @@ namespace eSecimAPI.Services
 			candidate.VoteCount += 1;
 			user.VotedElectionIds.Add(voteDto.ElectionId);
 
+			// Şifrelenmiş oy verisini oluştur
+			var voteData = $"{voteDto.ElectionId}:{voteDto.CandidateId}";
+			var encryptedVote = AesEncryptionHelper.Encrypt(voteData);
+
+			// Şifrelenmiş veriyi Votes tablosuna ekle
+			var vote = new Vote
+			{
+				EncryptedVote = encryptedVote,
+				Timestamp = DateTime.UtcNow
+			};
+			_context.Votes.Add(vote);
+
 			// Değişiklikleri kaydet
 			await _context.SaveChangesAsync();
 			return true;
 		}
+
 	}
 }

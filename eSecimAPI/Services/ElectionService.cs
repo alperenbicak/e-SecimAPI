@@ -93,7 +93,58 @@ namespace eSecimAPI.Services
 				}).ToList()
 			};
 		}
+		public async Task<Dictionary<int, int>> CalculateVoteResultsAsync(int electionId)
+		{
+			// Seçime ait oyları al
+			var votes = await _context.Votes.ToListAsync();
+			var voteCount = new Dictionary<int, int>();
+			foreach (var vote in votes)
+			{
+				// Şifrelenmiş veriyi çöz
+				string decryptedVote = AesEncryptionHelper.Decrypt(vote.EncryptedVote);
+				var parts = decryptedVote.Split(':');
+				int candidateId = int.Parse(parts[1]);
 
+				if (voteCount.ContainsKey(candidateId))
+					voteCount[candidateId]++;
+				else
+					voteCount[candidateId] = 1;
+			}
+
+			return voteCount; // Aday ID ve Oy Sayısı eşleşmesi
+		}
+
+		// Seçim sonuçlarını döndürür
+		public async Task<ElectionResultDto> GetElectionResultsAsync(int electionId)
+		{
+			// Seçimi getir
+			var election = await _context.Elections.Include(e => e.Candidates)
+												   .FirstOrDefaultAsync(e => e.Id == electionId);
+
+			if (election == null)
+				throw new KeyNotFoundException("Seçim bulunamadı.");
+
+			// Oyları hesapla
+			var calculatedVotes = await CalculateVoteResultsAsync(electionId);
+
+			// Sonuçları DTO'ya dönüştür
+			return new ElectionResultDto
+			{
+				ElectionId = election.Id,
+				Title = election.Title,
+				StartDate = election.StartDate,
+				EndDate = election.EndDate,
+				CandidateResults = election.Candidates.Select(c => new CandidateResultDto
+				{
+					CandidateId = c.CandidateId,
+					CandidateName = c.CandidateName,
+					CalculatedVoteCount = calculatedVotes.ContainsKey(c.CandidateId) ? calculatedVotes[c.CandidateId] : 0,
+					RecordedVoteCount = c.VoteCount
+				}).ToList()
+			};
+		}
 	}
+
 }
+
 

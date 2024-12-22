@@ -55,5 +55,18 @@ namespace eSecimAPI.Controllers
 				return NotFound(new { Error = ex.Message });
 			}
 		}
+		[HttpGet("{id}/results")]
+		public async Task<IActionResult> GetElectionResults(int electionId)
+		{
+			try
+			{
+				var results = await _electionService.GetElectionResultsAsync(electionId);
+				return Ok(results);
+			}
+			catch (KeyNotFoundException ex)
+			{
+				return NotFound(new { Error = ex.Message });
+			}
+		}
 	}
 }

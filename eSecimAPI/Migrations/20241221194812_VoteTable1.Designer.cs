@@ -12,8 +12,8 @@ using eSecimAPI.Data;
 namespace eSecimAPI.Migrations
 {
     [DbContext(typeof(ESecimDbContext))]
-    [Migration("20241124144814_first")]
-    partial class first
+    [Migration("20241221194812_VoteTable1")]
+    partial class VoteTable1
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -39,10 +39,6 @@ namespace eSecimAPI.Migrations
 
                     b.Property<int>("ElectionId")
                         .HasColumnType("int");
-
-                    b.Property<string>("Party")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("VoteCount")
                         .HasColumnType("int");
@@ -136,6 +132,30 @@ namespace eSecimAPI.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("eSecimAPI.Models.Vote", b =>
+                {
+                    b.Property<int>("VoteId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("VoteId"));
+
+                    b.Property<int>("CandidateId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ElectionId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("Timestamp")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.HasKey("VoteId");
+
+                    b.ToTable("Votes");
                 });
 
             modelBuilder.Entity("eSecimAPI.Models.Candidate", b =>

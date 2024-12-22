@@ -131,6 +131,28 @@ namespace eSecimAPI.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("eSecimAPI.Models.Vote", b =>
+                {
+                    b.Property<int>("VoteId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("VoteId"));
+
+                    b.Property<string>("EncryptedVote")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("Timestamp")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.HasKey("VoteId");
+
+                    b.ToTable("Votes");
+                });
+
             modelBuilder.Entity("eSecimAPI.Models.Candidate", b =>
                 {
                     b.HasOne("eSecimAPI.Models.Election", "Election")
